@@ -1,32 +1,34 @@
 
-import { useState } from "react";
+import { useState, FC, ChangeEvent, useCallback } from "react";
 import styled from "styled-components";
+import { MemoList } from "./MemoList";
+import { useMemoList } from "../hooks/useMemoList";
 
-export const App = () => {
+export const App : FC = () => {
 
-    const [text, setText] = useState("");
-    const [memos, setMemos] = useState<string[]>([]);
+    // 사용자 정의 훅으로 각각 얻기
+    const {memos, addTodo, deleteTodo} = useMemoList();
 
-    const memoCreate = () => {
-        //console.log("memoCreate");
-        // State 변경을 정상적으로 감지하기 위해 새로운 배열을 생성 (중요!!)
-        const newMemos = [...memos];
-        newMemos.push(text);
-        setMemos(newMemos);
+    // 텍스트 박스 state
+    const [text, setText] = useState<string>("");
+
+    // [추가] 클릭시 동작
+    const onClickAdd = () => {
+        addTodo(text);
         setText("");
     }
 
-    const memoDelete = (index: number) => {
-        //console.log("memoDelete");
-        // State 변경을 정상적으로 감지하기 위해 새로운 배열을 생성 (중요!!)
-        const newMemos = [...memos];
-        // 주의 : splice 말고 delete를 사용하면, 기존 index는 사라지지 않기때문에 '삭제'버튼이 계속 남아 있음.
-        newMemos.splice(index, 1);
-        setMemos(newMemos);
-    }
+    // [삭제] 버튼 클릭시 동작
+    const onClickDelete = useCallback((index: number) => {
+        deleteTodo(index)
+    }, [deleteTodo]);
 
-    const textChange = (e:any) => {
-        //console.log("textChange : " + e.target.value);
+
+    /*
+        e의 타입을 any로 사용하는 것보다 ChangeEvent를 사용하는게 더 정확하다.
+        참고 : https://merrily-code.tistory.com/157
+    */
+    const textChange = (e : ChangeEvent<HTMLInputElement>) => {
         setText(e.target.value);
     }
 
@@ -35,33 +37,12 @@ export const App = () => {
     <h1>간단 메모 애플리케이션</h1>
     <div>
         <SInput type="text" value={text} onChange={textChange}></SInput>
-        <SButton onClick={memoCreate}>추가</SButton>
+        <SButton onClick={onClickAdd}>추가</SButton>
     </div>
-    <SContainer>
-        메모목록
-        <ul>
-            {
-                /*
-                    일반적으로 map의 콜백함수로 사용되는 함수는 memos.map((memo, index) => {})와 같은 형태를 사용하나(중괄호 사용),
-                    화살표 함수에서 객체를 반환하거나 JSX 요소를 반환할 경우 '{}'가 아닌 '()'로 묶어주어야 한다. (주의!!)
-                */
-                /*
-                    아래 onClick()에서 화살표로 감싸는 이유는 아래 사이트 참고
-                    https://whales.tistory.com/98
-                */
-                memos.map((memo, index) => ( 
-                    <li key={index}>
-                        <SMemoWrapper>
-                            {memo}
-                            <SButton onClick={() => memoDelete(index)}>삭제</SButton>
-                        </SMemoWrapper>
-                    </li> 
-                ))
-            }
-        </ul>
-    </SContainer>
+        <MemoList memos={memos} onClickDelete={onClickDelete} />
     </>
     );
+
 }
 const SInput = styled.input`
     margin-left: 10px;
@@ -70,15 +51,4 @@ const SInput = styled.input`
 
 const SButton = styled.button`
     margin-left: 16px
-`;
-
-const SContainer = styled.div`
-    border: solid 1px #ccc;
-    padding: 16px;
-    margin: 8px;
-`;
-
-const SMemoWrapper = styled.div`
-    display: flex;
-    align-items: center;
 `;
