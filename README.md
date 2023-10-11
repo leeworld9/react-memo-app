@@ -25,7 +25,7 @@
 - 자주 사용되는 라이브러리와 프레임워크에 대한 학습
 
 
-### 참고
+### [참고]
 - https://product.kyobobook.co.kr/detail/S000200126533
 - https://whales.tistory.com/98
 - https://merrily-code.tistory.com/157
